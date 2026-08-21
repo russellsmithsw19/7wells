@@ -387,11 +387,18 @@
 // "changed" flags mark anything that differs from the previous issue of the plan.
 // This is issue v1, so nothing is flagged as changed yet.
 const weeks = [
-  {sunday:"2026-08-23", venue:"TW", label:"Pre-season", kickoff:"10:30–12:00", kind:"training",
-    theme1:"Speed", theme2:"Passing basics", fwd:"Tackling", bak:"Tackling"},
+  {sunday:"2026-08-23", venue:"TW", label:"Pre-season", kickoff:"10:30–12:00", kind:"training", changed:true,
+    introGame:"Rugby netball", activate:"Lunges, squats, press-ups",
+    theme1:"Passing basics", theme2:"Speed, plyometrics", fwd:"Scrums", bak:"Kicking · Chip · Turn and return",
+    finalGame:"Touch rugby, controlled",
+    introLinks:[{label:"Rugby netball — reference clip", url:"https://www.instagram.com/reel/DcL53ZAKNPI/?igsi=cjA1M3A3bHFyZjFl"}],
+    theme1Links:[{label:"Passing basics — reference clip", url:"https://www.instagram.com/p/DbLNbw6juTZ/?igsi=MWt4OXd4M2ppYzFpZA=="}],
+    theme2Links:[
+      {label:"Speed/plyo clip 1", url:"https://www.instagram.com/reel/DbK0OaKpE_Z/?igsi=MXB3c2dyano4OW5qdw=="},
+      {label:"Speed/plyo clip 2", url:"https://www.instagram.com/reel/DcBMfgku7Ei/?igsi=MWttOWp3Y3U2ZGV5Ng=="}
+    ]},
   {sunday:"2026-08-30", headline:"Last Sunday before schools back", venue:"TW", label:"Pre-season", kickoff:"10:30–12:00", kind:"training",
-    theme1:"Speed", theme2:"Passing basics", fwd:"Jackling", bak:"Jackling", changed:true,
-    bakLinks:[{label:"Jackling — coach reference clip", url:"https://www.instagram.com/p/DbLNbw6juTZ/?igsi=MWt4OXd4M2ppYzFpZA=="}]},
+    theme1:"Speed", theme2:"Passing basics", fwd:"Jackling", bak:"Jackling"},
   {sunday:"2026-09-06", headline:"First proper training", venue:"SO", label:"Training", kickoff:"11:00–12:30", kind:"training",
     theme1:"Speed", theme2:"Passing basics", fwd:"Scrum", bak:"Moves"},
   {sunday:"2026-09-13", venue:"TW", label:"Training · Conditioning results", kickoff:"TBC", kind:"training",
@@ -456,16 +463,16 @@ function themeBlocks(w){
   const fwd = w.fwd || null;
   const bak = w.bak || null;
   return [
-    {mins:10, lbl:"Intro game — light", cls:"blk-intro", content:"Coach's choice on the night", links:w.introLinks || []},
-    {mins:10, lbl:"Activate — heavier", cls:"blk-activate", content:"Coach's choice on the night", links:w.activateLinks || []},
+    {mins:10, lbl:"Intro game — light", cls:"blk-intro", content:w.introGame || "Coach's choice on the night", links:w.introLinks || [], changed: !!w.introGame},
+    {mins:10, lbl:"Activate — heavier", cls:"blk-activate", content:w.activate || "Coach's choice on the night", links:w.activateLinks || [], changed: !!w.activate},
     {mins:3, lbl:"Water break", cls:"blk-water", content:"—"},
-    {mins:15, lbl:"Theme 1", cls:"blk-theme1", content:t1, isTbd:!t1, links:w.theme1Links || []},
-    {mins:15, lbl:"Theme 2", cls:"blk-theme2", content:t2, isTbd:!t2, links:w.theme2Links || []},
+    {mins:15, lbl:"Theme 1", cls:"blk-theme1", content:t1, isTbd:!t1, links:w.theme1Links || [], changed: !!(w.theme1Links && w.theme1Links.length)},
+    {mins:15, lbl:"Theme 2", cls:"blk-theme2", content:t2, isTbd:!t2, links:w.theme2Links || [], changed: !!(w.theme2Links && w.theme2Links.length)},
     {mins:3, lbl:"Water break", cls:"blk-water", content:"—"},
     {mins:20, lbl:"Forwards / Backs split", cls:"blk-split",
       content: (fwd||bak) ? ("F: "+(fwd||"TBD")+"  ·  B: "+(bak||"TBD")) : null, isTbd:!(fwd||bak),
-      links: (w.fwdLinks||[]).concat(w.bakLinks||[]), changed: !!(w.bakLinks||w.fwdLinks) },
-    {mins:14, lbl:"Final game", cls:"blk-final", content:"Determined on the night, based on what today's session revealed", links:w.finalLinks || []}
+      links: (w.fwdLinks||[]).concat(w.bakLinks||[]), changed: !!(w.fwdLinks||w.bakLinks) },
+    {mins:14, lbl:"Final game", cls:"blk-final", content:w.finalGame || "Determined on the night, based on what today's session revealed", links:w.finalLinks || [], changed: !!w.finalGame}
   ];
 }
 
