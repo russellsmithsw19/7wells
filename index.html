@@ -121,6 +121,34 @@
 
   main{max-width:760px;margin:0 auto;padding:16px 12px 60px;}
 
+  .session.next-session{
+    border:4px solid #C0392B !important;
+    box-shadow:0 0 0 2px rgba(192,57,43,0.15);
+    margin-top:14px;
+  }
+  .next-banner{
+    background:#C0392B;
+    color:#fff;
+    font-size:11px;
+    font-weight:800;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    text-align:center;
+    padding:6px 0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+  }
+  .next-banner .arrow{
+    font-size:14px;
+    animation:bounce 1.4s infinite;
+  }
+  @keyframes bounce{
+    0%,100%{transform:translateY(0);}
+    50%{transform:translateY(3px);}
+  }
+
   .month-head{
     font-size:12px;
     text-transform:uppercase;
@@ -152,6 +180,10 @@
   .session[data-kind="break"]{border-left:4px solid var(--chalk-dim); opacity:0.72;}
   .session[data-kind="tbd"]{border-left:4px solid var(--tbd);}
   .session[data-kind="assessment"]{border-left:4px solid var(--pitch-mid);}
+  .session.wed-row{margin-left:5ch;}
+  @media (max-width:480px){
+    .session.wed-row{margin-left:2.5ch;}
+  }
   .session.changed{background:#FFFDF2;}
   .session.changed .row-summary::after{
     content:"UPDATED";
@@ -523,10 +555,10 @@ function tbdCard(w){
   return `<div class="matchcard">Open training slot — content not yet set in the sheet.<br>Use the standard 90-minute structure below once themes are confirmed.</div>` + trainingCard(w);
 }
 
-function buildEntry(dateInfo, kind, title, tagLabel, venueTxt, kickoffTxt, detailHtml, extraClass, changed){
+function buildEntry(dateInfo, kind, title, tagLabel, venueTxt, kickoffTxt, detailHtml, extraClass, changed, isWed){
   const id = "s-"+dateInfo.iso+(extraClass||"");
   return `
-  <div class="session${changed?' changed':''}" data-kind="${kind}" id="${id}">
+  <div class="session${changed?' changed':''}${isWed?' wed-row':''}" data-kind="${kind}" id="${id}">
     <button class="row-summary" onclick="toggleRow('${id}')" aria-expanded="false">
       <div class="datebox"><div class="dow">${dateInfo.dow}</div><div class="dnum">${dateInfo.dnum}</div><div class="mon">${dateInfo.mon}</div></div>
       <div class="row-main">
@@ -572,10 +604,10 @@ function render(){
 
     // Wednesday row
     if(w.kind === "break"){
-      html += buildEntry(wedInfo, "break", w.headline || "No midweek session", "Break", "", "", breakCard(w), "-wed", w.changed);
+      html += buildEntry(wedInfo, "break", w.headline || "No midweek session", "Break", "", "", breakCard(w), "-wed", w.changed, true);
     } else {
       const wedTitle = "Midweek top-up" + (w.headline && w.kind!=="training" ? " · "+w.headline : "");
-      html += buildEntry(wedInfo, "training", wedTitle, "Training", "", "", trainingCard(w), "-wed", w.changed);
+      html += buildEntry(wedInfo, "training", wedTitle, "Training", "", "", trainingCard(w), "-wed", w.changed, true);
     }
 
     // Sunday row
@@ -602,7 +634,39 @@ function render(){
 
   app.innerHTML = html;
 }
+function markNextSession(){
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const sessions = Array.from(document.querySelectorAll('.session'));
+  let best = null;
+  let bestDate = null;
+
+  sessions.forEach(el=>{
+    const kind = el.getAttribute('data-kind');
+    if(kind === 'break') return; // breaks are never "the next session"
+    const id = el.id; // e.g. s-2026-08-23-sun
+    const m = id.match(/^s-(\d{4}-\d{2}-\d{2})-/);
+    if(!m) return;
+    const d = new Date(m[1]+"T00:00:00");
+    if(d >= today){
+      if(!bestDate || d < bestDate){
+        bestDate = d;
+        best = el;
+      }
+    }
+  });
+
+  if(best){
+    best.classList.add('next-session');
+    const banner = document.createElement('div');
+    banner.className = 'next-banner';
+    banner.innerHTML = 'Next session <span class="arrow">&#8595;</span>';
+    best.parentNode.insertBefore(banner, best);
+  }
+}
+
 render();
+markNextSession();
 </script>
 </body>
 </html>
