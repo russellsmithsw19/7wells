@@ -272,7 +272,7 @@
     flex:0 0 auto;
     color:var(--tbd);
     transition:transform .18s ease;
-    font-size:12px;
+    font-size:24px;
   }
   .session.open .chev{transform:rotate(180deg);}
 
@@ -430,7 +430,19 @@ const weeks = [
       {label:"Speed/plyo clip 2", url:"https://www.instagram.com/reel/DcBMfgku7Ei/?igsi=MWttOWp3Y3U2ZGV5Ng=="}
     ]},
   {sunday:"2026-08-30", headline:"Last Sunday before schools back", venue:"TW", label:"Pre-season", kickoff:"10:30–12:00", kind:"training",
-    theme1:"Speed", theme2:"Passing basics", fwd:"Jackling", bak:"Jackling"},
+    theme1:"Speed", theme2:"Passing basics", fwd:"Jackling", bak:"Jackling",
+    wed:{
+      changed:true,
+      introGame:"With Ladies for Warm-up",
+      activate:"Zara can take girls through ankle strengthening for 10 mins · Abs (planks and variants) · Press ups",
+      theme1:"Passing basics",
+      theme2:"Plyometrics",
+      theme2Links:[
+        {label:"Plyo clip 1", url:"https://www.instagram.com/reel/DblbdAGCJRP/?igsi=MTZmdXl0NXRnN2xjdA=="},
+        {label:"Plyo clip 2", url:"https://www.instagram.com/reel/DbK0OaKpE_Z/?igsi=MXB3c2dyano4OW5qdw=="}
+      ],
+      finalGame:"Touch rugby, controlled"
+    }},
   {sunday:"2026-09-06", headline:"First proper training", venue:"SO", label:"Training", kickoff:"11:00–12:30", kind:"training",
     theme1:"Speed", theme2:"Passing basics", fwd:"Scrum", bak:"Moves"},
   {sunday:"2026-09-13", venue:"TW", label:"Training · Conditioning results", kickoff:"TBC", kind:"training",
@@ -489,22 +501,23 @@ function fmt(d){
 
 // Each block can optionally carry a "links" array: [{label:"Watch demo", url:"https://..."}]
 // populated from the sheet columns noted in the footer, once present.
-function themeBlocks(w){
-  const t1 = w.theme1 || null;
-  const t2 = w.theme2 || null;
-  const fwd = w.fwd || null;
-  const bak = w.bak || null;
+function themeBlocks(w, isWed){
+  const src = (isWed && w.wed) ? w.wed : w;
+  const t1 = src.theme1 || null;
+  const t2 = src.theme2 || null;
+  const fwd = src.fwd || null;
+  const bak = src.bak || null;
   return [
-    {mins:10, lbl:"Intro game — light", cls:"blk-intro", content:w.introGame || "Coach's choice on the night", links:w.introLinks || [], changed: !!w.introGame},
-    {mins:10, lbl:"Activate — heavier", cls:"blk-activate", content:w.activate || "Coach's choice on the night", links:w.activateLinks || [], changed: !!w.activate},
+    {mins:10, lbl:"Intro game — light", cls:"blk-intro", content:src.introGame || "Coach's choice on the night", links:src.introLinks || [], changed: !!src.introGame},
+    {mins:10, lbl:"Activate — heavier", cls:"blk-activate", content:src.activate || "Coach's choice on the night", links:src.activateLinks || [], changed: !!src.activate},
     {mins:3, lbl:"Water break", cls:"blk-water", content:"—"},
-    {mins:15, lbl:"Theme 1", cls:"blk-theme1", content:t1, isTbd:!t1, links:w.theme1Links || [], changed: !!(w.theme1Links && w.theme1Links.length)},
-    {mins:15, lbl:"Theme 2", cls:"blk-theme2", content:t2, isTbd:!t2, links:w.theme2Links || [], changed: !!(w.theme2Links && w.theme2Links.length)},
+    {mins:15, lbl:"Theme 1", cls:"blk-theme1", content:t1, isTbd:!t1, links:src.theme1Links || [], changed: !!(src.theme1Links && src.theme1Links.length)},
+    {mins:15, lbl:"Theme 2", cls:"blk-theme2", content:t2, isTbd:!t2, links:src.theme2Links || [], changed: !!(src.theme2Links && src.theme2Links.length)},
     {mins:3, lbl:"Water break", cls:"blk-water", content:"—"},
     {mins:20, lbl:"Forwards / Backs split", cls:"blk-split",
       content: (fwd||bak) ? ("F: "+(fwd||"TBD")+"  ·  B: "+(bak||"TBD")) : null, isTbd:!(fwd||bak),
-      links: (w.fwdLinks||[]).concat(w.bakLinks||[]), changed: !!(w.fwdLinks||w.bakLinks) },
-    {mins:14, lbl:"Final game", cls:"blk-final", content:w.finalGame || "Determined on the night, based on what today's session revealed", links:w.finalLinks || [], changed: !!w.finalGame}
+      links: (src.fwdLinks||[]).concat(src.bakLinks||[]), changed: !!(src.fwdLinks||src.bakLinks) },
+    {mins:14, lbl:"Final game", cls:"blk-final", content:src.finalGame || "Determined on the night, based on what today's session revealed", links:src.finalLinks || [], changed: !!src.finalGame}
   ];
 }
 
@@ -528,8 +541,8 @@ function renderBlocklist(blocks){
   }).join('') + '</ul>';
 }
 
-function trainingCard(w){
-  const blocks = themeBlocks(w);
+function trainingCard(w, isWed){
+  const blocks = themeBlocks(w, isWed);
   let html = renderTimeline(blocks) + renderBlocklist(blocks);
   if(w.u16){
     html += `<span class="u16">→U16 prep: layering in wider space, faster ball, greater decision-making load</span>`;
@@ -551,8 +564,8 @@ function breakCard(w){
   return `<div class="matchcard">No session — ${w.headline || "break"}.</div>`;
 }
 
-function tbdCard(w){
-  return `<div class="matchcard">Open training slot — content not yet set in the sheet.<br>Use the standard 90-minute structure below once themes are confirmed.</div>` + trainingCard(w);
+function tbdCard(w,isWed){
+  return `<div class="matchcard">Open training slot — content not yet set in the sheet.<br>Use the standard 90-minute structure below once themes are confirmed.</div>` + trainingCard(w,isWed);
 }
 
 function buildEntry(dateInfo, kind, title, tagLabel, venueTxt, kickoffTxt, detailHtml, extraClass, changed, isWed){
@@ -607,7 +620,7 @@ function render(){
       html += buildEntry(wedInfo, "break", w.headline || "No midweek session", "Break", "", "", breakCard(w), "-wed", w.changed, true);
     } else {
       const wedTitle = "Midweek top-up" + (w.headline && w.kind!=="training" ? " · "+w.headline : "");
-      html += buildEntry(wedInfo, "training", wedTitle, "Training", "", "", trainingCard(w), "-wed", w.changed, true);
+      html += buildEntry(wedInfo, "training", wedTitle, "Training", "", "", trainingCard(w, true), "-wed", (w.changed || (w.wed && w.wed.changed)), true);
     }
 
     // Sunday row
@@ -623,12 +636,12 @@ function render(){
       title = w.label || "Assessment day";
       html += buildEntry(sunInfo, "assessment", title, "Assessment", "", "", matchCard(w), "-sun", w.changed);
     } else if(w.kind==="tbd"){
-      html += buildEntry(sunInfo, "tbd", w.headline || "Open training slot", "TBD", "", "", tbdCard(w), "-sun", w.changed);
+      html += buildEntry(sunInfo, "tbd", w.headline || "Open training slot", "TBD", "", "", tbdCard(w,false), "-sun", w.changed);
     } else {
       title = w.label + (w.headline ? " · "+w.headline : "");
       kickoffTxt = w.kickoff && w.kickoff!=="TBC" ? w.kickoff : "KO TBC";
       venueTxt = w.venue ? "Venue: "+w.venue : "";
-      html += buildEntry(sunInfo, "training", title, "Training", venueTxt, kickoffTxt, trainingCard(w), "-sun", w.changed);
+      html += buildEntry(sunInfo, "training", title, "Training", venueTxt, kickoffTxt, trainingCard(w, false), "-sun", w.changed);
     }
   });
 
