@@ -359,6 +359,14 @@
     flex-wrap:wrap;
     width:100%;
     margin-top:2px;
+    align-items:center;
+  }
+  .links .link-caption{
+    font-size:10.5px;
+    font-style:italic;
+    color:var(--tbd);
+    width:100%;
+    margin-bottom:1px;
   }
   .links a{
     font-size:11px;
@@ -429,8 +437,15 @@ const weeks = [
       {label:"Speed/plyo clip 1", url:"https://www.instagram.com/reel/DbK0OaKpE_Z/?igsi=MXB3c2dyano4OW5qdw=="},
       {label:"Speed/plyo clip 2", url:"https://www.instagram.com/reel/DcBMfgku7Ei/?igsi=MWttOWp3Y3U2ZGV5Ng=="}
     ]},
-  {sunday:"2026-08-30", headline:"Last Sunday before schools back", venue:"TW", label:"Pre-season", kickoff:"10:30–12:00", kind:"training",
-    theme1:"Speed", theme2:"Passing basics", fwd:"Jackling", bak:"Jackling",
+  {sunday:"2026-08-30", headline:"Last Sunday before schools back", venue:"TW", label:"Pre-season", kickoff:"10:30–12:00", kind:"training", changed:true,
+    introGame:"With Ladies for Warm-up",
+    activate:"Ankle strengthening for 10 mins · Abs (planks and variants) · Press ups",
+    theme1:"Passing basics — three person drill, focus on middle person, run at pace toward an upright tackle tube, pass across body just before tube",
+    theme1Links:[{label:"Passing drill — reference clip", url:"https://www.instagram.com/reel/Db5T_uPidhc/?igsi=MWsybDZmaGd6dGNuMQ=="}],
+    theme2:"Tackling back to basics — extend to passing out of the tackle (use ground pads either side)",
+    theme2Links:[{label:"Tackling reference clip", url:"https://www.instagram.com/reel/CuWx4ypoS19/?igsi=YjFlbm9qbjhmbW82"}],
+    fwd:"Scrums — basics, then together on timing", bak:"Kicking · Chip · Turn and return",
+    finalGame:"Touch rugby, controlled",
     wed:{
       changed:true,
       introGame:"With Ladies for Warm-up",
@@ -451,6 +466,7 @@ const weeks = [
   {sunday:"2026-09-27", venue:"SO", label:"Training", kickoff:"11:00–12:30", kind:"training"},
   {sunday:"2026-10-04", venue:"H", label:"vs TJs", kind:"waterfall", note:"Waterfall Games 1"},
   {sunday:"2026-10-11", headline:"We are OOD @ TW", venue:"A", label:"vs Medway", kind:"waterfall", note:"Waterfall Games 2"},
+  {special:true, date:"2026-10-17", dayLabel:"Saturday", venue:"?", label:"Hold the date — Saracens pre Premier League match", kickoff:"TBC", kind:"fixture", changed:true},
   {sunday:"2026-10-18", kind:"tbd"},
   {sunday:"2026-10-25", headline:"Half term", venue:"SO", label:"Training", kickoff:"11:00–12:30", kind:"training"},
   {sunday:"2026-11-01", headline:"Half term", kind:"break"},
@@ -535,7 +551,7 @@ function renderBlocklist(blocks){
       ? '<span class="content tbd">TBD — awaiting theme in sheet</span>'
       : `<span class="content">${b.content}</span>`;
     const linksHtml = (b.links && b.links.length)
-      ? `<div class="links">${b.links.map(l=>`<a href="${l.url}" target="_blank" rel="noopener">▶ ${l.label||'Open link'}</a>`).join('')}</div>`
+      ? `<div class="links"><span class="link-caption">Follow link for extension activity…</span>${b.links.map(l=>`<a href="${l.url}" target="_blank" rel="noopener">▶ ${l.label||'Open link'}</a>`).join('')}</div>`
       : '';
     return `<li class="${changedCls.trim()}"><span class="mins">${b.mins}′</span><span class="lbl">${b.lbl}</span>${contentHtml}${linksHtml}</li>`;
   }).join('') + '</ul>';
@@ -605,6 +621,19 @@ function render(){
   let lastMonth = "";
 
   weeks.forEach(w=>{
+    if(w.special){
+      const d = new Date(w.date+"T12:00:00");
+      const info = fmt(d);
+      if(info.monthKey !== lastMonth){
+        html += `<div class="month-head">${info.monthKey}</div>`;
+        lastMonth = info.monthKey;
+      }
+      const kickoffTxt = w.kickoff && w.kickoff!=="TBC" ? w.kickoff : "KO TBC";
+      const venueTxt = w.venue ? "Venue: "+w.venue : "";
+      html += buildEntry(info, w.kind, w.label, tagLabelFor(w.kind), venueTxt, kickoffTxt, matchCard(w), "-special", w.changed, false);
+      return;
+    }
+
     const sunDate = new Date(w.sunday+"T12:00:00");
     const wedDate = addDays(w.sunday,-4);
     const sunInfo = fmt(sunDate);
