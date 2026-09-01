@@ -459,7 +459,18 @@ const weeks = [
       finalGame:"Touch rugby, controlled"
     }},
   {sunday:"2026-09-06", headline:"First proper training", venue:"SO", label:"Training", kickoff:"11:00–12:30", kind:"training",
-    theme1:"Speed", theme2:"Passing basics", fwd:"Scrum", bak:"Moves"},
+    theme1:"Speed", theme2:"Passing basics", fwd:"Scrum", bak:"Moves",
+    wed:{
+      changed:true,
+      venue:"Both sites separately", label:"Pre-season", kickoff:"18:30–20:00",
+      introGame:"Activate",
+      activate:"Zara can take girls through ankle strengthening for 10 mins · Abs (planks and variants) · Press ups",
+      theme1:"Passing basics — three person drill, focus on middle person, run at pace toward an upright tackle tube, pass across body just before tube",
+      theme2:"Two on one's",
+      fwd:"Footwork", fwdLinks:[{label:"Footwork — reference clip", url:"https://www.instagram.com/reel/Dcs3j6buxiN/?igsi=djZmYWxsd2JvZjJs"}],
+      bak:"Tackling", bakLinks:[{label:"Tackling — reference clip", url:"https://vm.tiktok.com/ZN8FEy62c/"}],
+      finalGame:"Touch rugby, controlled"
+    }},
   {sunday:"2026-09-13", venue:"TW", label:"Training · Conditioning results", kickoff:"TBC", kind:"training",
     theme1:"Passing basics", fwd:"Jackling", bak:"Jackling"},
   {sunday:"2026-09-20", venue:"TW", label:"vs Horsham RFC", kickoff:"TBC", kind:"fixture"},
@@ -648,8 +659,10 @@ function render(){
     if(w.kind === "break"){
       html += buildEntry(wedInfo, "break", w.headline || "No midweek session", "Break", "", "", breakCard(w), "-wed", w.changed, true);
     } else {
-      const wedTitle = "Midweek top-up" + (w.headline && w.kind!=="training" ? " · "+w.headline : "");
-      html += buildEntry(wedInfo, "training", wedTitle, "Training", "", "", trainingCard(w, true), "-wed", (w.changed || (w.wed && w.wed.changed)), true);
+      const wedVenue = (w.wed && w.wed.venue) ? "Venue: "+w.wed.venue : "";
+      const wedKickoff = (w.wed && w.wed.kickoff) ? w.wed.kickoff : "";
+      const wedTitle = (w.wed && w.wed.label ? w.wed.label : "Midweek top-up") + (w.headline && w.kind!=="training" ? " · "+w.headline : "");
+      html += buildEntry(wedInfo, "training", wedTitle, "Training", wedVenue, wedKickoff, trainingCard(w, true), "-wed", (w.changed || (w.wed && w.wed.changed)), true);
     }
 
     // Sunday row
