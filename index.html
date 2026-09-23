@@ -386,6 +386,48 @@
   }
   .matchcard b{color:var(--pitch-mid);}
 
+  .matchroutine{
+    margin-top:14px;
+    border:1px solid var(--chalk-dim);
+    border-radius:8px;
+    padding:10px 12px 12px;
+    background:#F9F8F4;
+  }
+  .matchroutine-head{
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    font-weight:800;
+    color:var(--pitch-mid);
+    display:flex;
+    align-items:center;
+    gap:6px;
+    margin-bottom:6px;
+  }
+  .newtag{
+    background:var(--highlight);
+    border:1px solid var(--highlight-border);
+    color:#5c4a06;
+    font-size:9px;
+    padding:1px 6px;
+    border-radius:4px;
+    letter-spacing:.04em;
+  }
+  .mr-list{list-style:none; margin:0; padding:0; display:grid; gap:5px;}
+  .mr-list li{
+    display:flex;
+    gap:10px;
+    align-items:baseline;
+    font-size:12.5px;
+    padding:5px 8px;
+    background:#fff;
+    border-radius:6px;
+    border:1px solid #ECE9DE;
+  }
+  .mr-time{flex:0 0 100px; font-weight:800; color:var(--sky); font-size:11.5px;}
+  .mr-label{color:#3f4844;}
+  .mr-note{font-size:11px; color:var(--tbd); font-style:italic; margin:8px 0 0;}
+
   footer{
     max-width:760px;margin:0 auto;padding:0 14px 40px;
     font-size:11.5px;color:var(--tbd);line-height:1.6;
@@ -508,7 +550,17 @@ const weeks = [
       bak:"Moves to use",
       finalGame:"Overload Touch (3v2, 4v3, 5v4) — Skill focus: Attacking Shape & Decision Making. Setup: small-sided, numbers-up attack in a tight grid; attack scores by getting to the try line, defence wins by touch count. To reduce the challenge: increase the overload (4v2); slow defenders by having them start further back. To increase the challenge: reduce overload to even numbers briefly (3v3) once shape is understood; shrink the grid to demand faster decisions."
     }},
-  {sunday:"2026-09-27", venue:"SO", label:"Training", kickoff:"11:00–12:30", kind:"training"},
+  {sunday:"2026-09-27", venue:"SO", label:"Training", kickoff:"11:00–12:30", kind:"training", changed:true,
+    wed:{
+      changed:true,
+      introGame:"Activate",
+      activate:"Pop off the floor",
+      theme1:"Two on ones — defender facing the wrong way",
+      theme2:"Footwork", theme2Links:[{label:"Footwork — reference clip", url:"https://www.instagram.com/reel/Dcs3j6buxiN/?igsi=djZmYWxsd2JvZjJs"}],
+      fwd:"Don't split — listening for support",
+      bak:"Don't split",
+      finalGame:"Overload Touch (3v2, 4v3, 5v4) — Skill focus: Attacking Shape & Decision Making. Setup: small-sided, numbers-up attack in a tight grid; attack scores by getting to the try line, defence wins by touch count. To reduce the challenge: increase the overload (4v2); slow defenders by having them start further back. To increase the challenge: reduce overload to even numbers briefly (3v3) once shape is understood; shrink the grid to demand faster decisions."
+    }},
   {sunday:"2026-10-04", venue:"Tunbridge Wells", label:"vs TJs", kind:"waterfall", note:"Waterfall Games 1", changed:true},
   {sunday:"2026-10-11", headline:"We are OOD @ TW", venue:"AWAY", label:"vs Medway", kickoff:"TBC", kind:"waterfall", note:"Waterfall Games 2", changed:true},
   {special:true, date:"2026-10-17", dayLabel:"Saturday", venue:"Saracens", label:"Saracens Tournament", kickoff:"TBC", kind:"fixture", changed:true},
@@ -611,13 +663,63 @@ function trainingCard(w, isWed){
   return html;
 }
 
+function parseKickoffStart(raw){
+  if(!raw) return null;
+  const m = String(raw).match(/(\d{1,2})[:.](\d{2})/);
+  if(!m) return null;
+  return parseInt(m[1],10)*60 + parseInt(m[2],10);
+}
+function formatClock(totalMins){
+  const t = ((totalMins % 1440)+1440)%1440;
+  const h = Math.floor(t/60), m = t%60;
+  return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
+}
+const MATCH_ROUTINE_STEPS = [
+  {label:"Warm up", mins:12},
+  {label:"Water break", mins:3},
+  {label:"Passing drills", mins:10},
+  {label:"Full contact", mins:10},
+  {label:"Split forwards/backs — key elements", mins:5},
+  {label:"Water / final jobs", mins:5}
+];
+function renderMatchRoutine(kickoffRaw){
+  const ko = parseKickoffStart(kickoffRaw);
+  let cursor = ko !== null ? ko - 45 : null;
+  const rows = MATCH_ROUTINE_STEPS.map(s=>{
+    let timeTxt;
+    if(cursor !== null){
+      const start = cursor, end = cursor + s.mins;
+      timeTxt = formatClock(start)+"–"+formatClock(end);
+      cursor = end;
+    } else {
+      timeTxt = s.mins+"′";
+    }
+    return `<li><span class="mr-time">${timeTxt}</span><span class="mr-label">${s.label}</span></li>`;
+  }).join('');
+
+  let note = '';
+  if(ko === null){
+    note = '<p class="mr-note">Kick-off not yet confirmed — once it\'s set in the sheet, this routine will calculate exact clock times automatically.</p>';
+  } else {
+    note = `<p class="mr-note">Warm-up starts ${formatClock(ko-45)} (45 min before KO). Routine runs right through to kick-off at ${formatClock(cursor)}.</p>`;
+  }
+
+  return `<div class="matchroutine">
+    <div class="matchroutine-head">Match day routine <span class="newtag">NEW</span></div>
+    <ul class="mr-list">${rows}</ul>
+    ${note}
+  </div>`;
+}
+
 function matchCard(w){
   const kickoff = w.kickoff && w.kickoff!=="TBC" ? w.kickoff : "Kick-off TBC";
   const venueMap = {TW:"Home (Tunbridge Wells)", SO:"Away / other venue", H:"Home", A:"Away", "?":"Venue TBC"};
   const venueTxt = venueMap[w.venue] || w.venue || "Venue TBC";
   const noteTxt = w.note ? `<br><b>Round:</b> ${w.note}` : "";
+  const routineHtml = (w.kind === "fixture" || w.kind === "waterfall") ? renderMatchRoutine(kickoff) : "";
   return `<div class="matchcard"><b>Fixture:</b> ${w.label}<br><b>Venue:</b> ${venueTxt}<br><b>Kick-off:</b> ${kickoff}${noteTxt}
     ${w.u16 ? '<span class="u16">→U16 prep: use this fixture to test progressions from midweek training</span>':''}
+    ${routineHtml}
   </div>`;
 }
 
